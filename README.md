@@ -21,12 +21,16 @@
    * Give your function a name
    * Set runtime to Python 2.7
 
-4. Edit code:
-   * Edit the contents of ```le_config.py```
-   * Replace values of ```log_token``` and ```debug_token``` with tokens obtained earlier.
-   * Create a .ZIP file, containing the updated ```le_config.py```, ```le_cloudwatch.py``` and the folder ```certifi```
+4. Build zip:
+   * Run `make_zip.sh` to get the file
+     * Create a .ZIP file, containing the updated ```le_config.py```, ```le_cloudwatch.py``` and the folder ```certifi```
      * Make sure the files and ```certifi``` folder are in the **root** of the ZIP archive
    * Choose "Upload a .ZIP file" in "Code entry type" dropdown and upload the archive created in previous step
+   * In "Environment variables" add an entry for LE_LOG_TOKEN key and enter the value you obtained earlier.
+   * If you want more customization
+     * Edit the contents of ```le_config.py``` and replace values of ```log_token``` and ```debug_token``` as needed
+     * Create the zip with the modified file
+     * On upload only enter "Environment variables" as needed
 
 5. Lambda function handler and role
    * Change the "Handler" value to ```le_cloudwatch.lambda_handler```
