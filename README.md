@@ -22,7 +22,8 @@
    * Set runtime to Python 2.7
 
 4. Build zip:
-   * Run `make_zip.sh` to get the file
+   * Optionally use `make certifi` to ensure upgraded to latest on pypi
+   * Run `make zip` to get the file
      * Create a .ZIP file, containing the updated ```le_config.py```, ```le_cloudwatch.py``` and the folder ```certifi```
      * Make sure the files and ```certifi``` folder are in the **root** of the ZIP archive
    * Choose "Upload a .ZIP file" in "Code entry type" dropdown and upload the archive created in previous step
