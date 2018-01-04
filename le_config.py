@@ -15,8 +15,8 @@ prefix_with_lambda_source = not (
 )
 
 # Log to generic activity from this script to our support logging system for Lambda scripts
-# this is optional, but helps us improve our service nad can be hand for us helping you debug any issues
+# this is optional, but helps us improve our service and can be handy for us helping you debug any issues
 # just remove this token if you wish (leave variable in place)
-lambda_token = "0ae0162e-855a-4b54-9ae3-bd103006bfc0"
+lambda_token = os.environ.get('LE_LAMBDA_TOKEN') or "0ae0162e-855a-4b54-9ae3-bd103006bfc0"
 
 username = os.environ.get('LE_USERNAME') or "username"
