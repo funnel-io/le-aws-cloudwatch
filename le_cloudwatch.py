@@ -46,11 +46,10 @@ def lambda_handler(event, context):
 
     prefix = ""
     if prefix_with_lambda_source:
-        # "logGroup": "/aws/lambda/hello-world-test",
-        # "logStream": "2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602",
-        lambda_function = cw_data_dict['logGroup'].split('/')[-1]  # only use last part if slash delimited
-        log_stream = cw_data_dict['logStream'][-7:]  # last 7 significant enough
-        prefix = "<" + lambda_function + " " + log_stream + "> "
+        #eg cw_data_dict = dict(logGroup="/aws/lambda/hello-world-test", logStream="2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602")
+        part1 = cw_data_dict['logGroup'].split('/')[-1]  # only use last part if slash delimited
+        part2 = cw_data_dict['logStream'][-7:]  # last 7 significant enough
+        prefix = "<" + part1 + " " + part2 + "> "
 
     # loop through the events and send to Logentries
     for log_event in cw_data_dict['logEvents']:
