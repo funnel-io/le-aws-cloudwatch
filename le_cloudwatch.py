@@ -34,26 +34,26 @@ def lambda_handler(event, context):
     cw_data = str(event['awslogs']['data'])
 
     # decode and uncompress CloudWatch logs
-    cw_logs = gzip.GzipFile(fileobj=StringIO(cw_data.decode('base64', 'strict'))).read()
+    cw_data_decoded = gzip.GzipFile(fileobj=StringIO(cw_data.decode('base64', 'strict'))).read()
 
     # convert the log data from JSON into a dictionary
-    log_events = json.loads(cw_logs)
+    cw_data_dict = json.loads(cw_data_decoded)
 
     # Send debug info re start of stream
     for token in tokens:
         send_to_le("\"streamID\": \"{}\" le_cloudwatch"
                    " \"user\": \"{}\" started sending logs".format(stream_id[:8], username), sock, token)
 
-    # loop through the events and send to Logentries
-    for log_event in log_events['logEvents']:
-        prefix = ""
-        if prefix_with_lambda_source:
-            # "logGroup": "/aws/lambda/hello-world-test",
-            # "logStream": "2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602",
-            lambda_function = log_event['logGroup'].split('/')[-1]  # only use last part if slash delimited
-            log_stream = log_event['logStream'][-7:]  # last 7 significant enough
-            prefix = "<" + lambda_function + " " + log_stream + "> "
+    prefix = ""
+    if prefix_with_lambda_source:
+        # "logGroup": "/aws/lambda/hello-world-test",
+        # "logStream": "2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602",
+        lambda_function = cw_data_dict['logGroup'].split('/')[-1]  # only use last part if slash delimited
+        log_stream = cw_data_dict['logStream'][-7:]  # last 7 significant enough
+        prefix = "<" + lambda_function + " " + log_stream + "> "
 
+    # loop through the events and send to Logentries
+    for log_event in cw_data_dict['logEvents']:
         # look for extracted fields, if not present, send plain message
         try:
             send_to_le(prefix + json.dumps(log_event['extractedFields']), sock, log_token)
