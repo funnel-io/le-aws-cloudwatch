@@ -9,6 +9,11 @@ log_token = os.environ['LE_LOG_TOKEN']
 # wish to use this, just leave the value blank.
 debug_token = os.environ.get('LE_DEBUG_TOKEN') or ""
 
+# Get a "<functionname stream> " prefix on all log lines so can see which lambda function logged which line
+prefix_with_lambda_source = not (
+    os.environ.get('LE_PREFIX_WITH_LAMBDA_SOURCE') in ('False', 'false', '0', 'no')
+)
+
 # Log to generic activity from this script to our support logging system for Lambda scripts
 # this is optional, but helps us improve our service nad can be hand for us helping you debug any issues
 # just remove this token if you wish (leave variable in place)

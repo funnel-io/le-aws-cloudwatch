@@ -46,12 +46,20 @@ def lambda_handler(event, context):
 
     # loop through the events and send to Logentries
     for log_event in log_events['logEvents']:
+        prefix = ""
+        if prefix_with_lambda_source:
+            # "logGroup": "/aws/lambda/hello-world-test",
+            # "logStream": "2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602",
+            lambda_function = log_event['logGroup'].split('/')[-1]  # only use last part if slash delimited
+            log_stream = log_event['logStream'][-7:]  # last 7 significant enough
+            prefix = "<" + lambda_function + " " + log_stream + "> "
 
         # look for extracted fields, if not present, send plain message
         try:
-            send_to_le(json.dumps(log_event['extractedFields']), sock, log_token)
+            send_to_le(prefix + json.dumps(log_event['extractedFields']), sock, log_token)
         except KeyError:
-            send_to_le(log_event['message'], sock, log_token)
+            # TODO: consider supplying formated timestamp too!?
+            send_to_le(prefix + log_event['message'], sock, log_token)
 
     # Send debug info re end of stream
     for token in tokens:
