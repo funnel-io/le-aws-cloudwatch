@@ -16,8 +16,8 @@ logger.info('Loading function...')
 REGION = os.environ.get('region') or 'eu'
 ENDPOINT = '{}.data.logs.insight.rapid7.com'.format(REGION)
 PORT = 20000
-TOKEN = os.environ.get('token') or os.environ.get('LE_LOG_TOKEN')
-PREFIX_LINES = os.environ.get('LE_PREFIX_LINES') in ('true', 'yes')
+TOKEN = os.environ.get('token')
+PREFIX_LINES = os.environ.get('prefix') in ('true', 'yes')
 LINE = u'\u2028'.encode('utf-8')
 
 
@@ -25,38 +25,49 @@ def treat_message(message):
     return message.replace('\n', LINE)
 
 
+def send_lines(sock, cw_data_dict):
+    # Optionally get a "<functionname stream> " prefix on all lines so can see
+    # what logged each line. E.G. extract from cw_data_dict = dict(
+    #    logGroup="/aws/lambda/hello-world-test",
+    #    logStream="2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602")
+    prefix = ""
+    if PREFIX_LINES:
+        # only use last part if slash delimited and last 7 significant enough
+        prefix = '<%s %s>' % (
+            cw_data_dict['logGroup'].split('/')[-1],
+            cw_data_dict['logStream'][-7:]
+        )
+
+    send = lambda line: sock.sendall(
+        '%s %s%s\n' % (TOKEN, prefix, treat_message(line))
+    )
+
+    # loop through the log events and send to the endpoint
+    for log_event in cw_data_dict['logEvents']:
+        # Note that log_event['timestamp'] is not used
+        try:
+            send(json.dumps(log_event['extractedFields']))
+        except KeyError:
+            send(log_event['message'])
+    logger.info('Sent %s log events', len(cw_data_dict['logEvents']))
+
+
 def lambda_handler(event, context):
-    sock = create_socket()
+    logger.info('Received log stream...')
 
     if not validate_uuid(TOKEN):
         logger.critical('{} is not a valid token. Exiting.'.format(TOKEN))
         raise SystemExit
 
     cw_data = str(event['awslogs']['data'])
-    cw_data_decoded = gzip.GzipFile(fileobj=StringIO(cw_data.decode('base64', 'strict'))).read()
-    cw_data_dict = json.loads(cw_data_decoded)
-    logger.info('Received log stream...')
+    cw_data_file = StringIO(cw_data.decode('base64', 'strict'))
+    cw_data_json = gzip.GzipFile(fileobj=cw_data_file).read()
+    cw_data_dict = json.loads(cw_data_json)
 
-    prefix = ""
-    if PREFIX_LINES:
-        # EG cw_data_dict = dict(logGroup="/aws/lambda/hello-world-test",
-        #                        logStream="2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602")
-        part1 = cw_data_dict['logGroup'].split('/')[-1]  # only use last part if slash delimited
-        part2 = cw_data_dict['logStream'][-7:]  # last 7 significant enough
-        prefix = "<" + part1 + " " + part2 + "> "
-
-    # loop through the events and send to Logentries
-    send_to_le = lambda line: sock.sendall(
-        '%s %s%s\n' % (TOKEN, prefix, treat_message(line))
-    )
-    for log_event in cw_data_dict['logEvents']:
-        # Note that log_event['timestamp'] is not used
-        try:
-            send_to_le(json.dumps(log_event['extractedFields']))
-        except KeyError:
-            send_to_le(log_event['message'])
-
+    sock = create_socket()
+    send_lines(sock, cw_data_dict)
     sock.close()
+
     logger.info('Function execution finished.')
 
 
