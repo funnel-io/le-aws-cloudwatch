@@ -34,13 +34,12 @@
    * Create a new basic execution role (your IAM user must have sufficient permissions to create & assign new roles)
 
 6. Set Environment Variables:
-   * Token value should match UUID provided by Logentries UI or API
-   * Region should be that of your LE account - currently only ```eu```
 
-   | Key       | Value      |
-   |-----------|------------|
-   | region    | eu         |
-   | token     | token uuid |
+   | Key       | Value      | Comment  |
+   |-----------|------------|----------|
+   | token     | token uuid | The UUID provided by Logentries UI or API - required |
+   | region    | eu         | That of your LE account - currently only `eu` |
+   | prefix    | true|false | Prefix lines with cloudwatch log group and stream information - default false |
 
 7. Allocate resources:
    * Set memory to 128 MB
