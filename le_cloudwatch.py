@@ -30,10 +30,10 @@ def send_lines(sock, cw_data_dict):
     # what logged each line. E.G. extract from cw_data_dict = dict(
     #    logGroup="/aws/lambda/hello-world-test",
     #    logStream="2018/01/04/[$LATEST]bdb3a48bb55c404398b46ef71881d602")
-    prefix = ""
+    prefix = ''
     if PREFIX_LINES:
         # only use last part if slash delimited and last 7 significant enough
-        prefix = '<%s %s>' % (
+        prefix = '<%s %s> ' % (
             cw_data_dict['logGroup'].split('/')[-1],
             cw_data_dict['logStream'][-7:]
         )
