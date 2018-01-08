@@ -18,12 +18,7 @@ ENDPOINT = '{}.data.logs.insight.rapid7.com'.format(REGION)
 PORT = 20000
 TOKEN = os.environ.get('token')
 PREFIX_LINES = os.environ.get('prefix') in ('true', 'yes')
-LINE = u'\u2028'.encode('utf-8')
-
-
-def treat_message(message):
-    return message.replace('\n', LINE)
-
+LINE_SEPARATOR = u'\u2028'.encode('utf-8')
 
 def send_lines(sock, cw_data_dict):
     # Optionally get a "<functionname stream> " prefix on all lines so can see
@@ -38,8 +33,8 @@ def send_lines(sock, cw_data_dict):
             cw_data_dict['logStream'][-7:]
         )
 
-    send = lambda line: sock.sendall(
-        '%s %s%s\n' % (TOKEN, prefix, treat_message(line))
+    send = lambda logentry: sock.sendall(
+        '%s %s%s\n' % (TOKEN, prefix, logentry.replace('\n', LINE_SEPARATOR))
     )
 
     # loop through the log events and send to the endpoint
