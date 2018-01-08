@@ -2,7 +2,7 @@
 
 # get the latest certifi
 certifi:
-	pip install --upgrade --target .  certifi && rm -rf certifi-2017.4.17.*
+	pip install --upgrade --target .  certifi && rm -rf certifi-201*dist-info
 
 # package for upload
 zip:
