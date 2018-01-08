@@ -20,6 +20,11 @@ TOKEN = os.environ.get('token')
 PREFIX_LINES = os.environ.get('prefix') in ('true', 'yes')
 LINE_SEPARATOR = u'\u2028'.encode('utf-8')
 
+
+def treat_message(message):
+    return message.strip(' \n').replace('\n', LINE_SEPARATOR)
+
+
 def send_lines(sock, cw_data_dict):
     # Optionally get a "<functionname stream> " prefix on all lines so can see
     # what logged each line. E.G. extract from cw_data_dict = dict(
@@ -34,7 +39,7 @@ def send_lines(sock, cw_data_dict):
         )
 
     send = lambda logentry: sock.sendall(
-        '%s %s%s\n' % (TOKEN, prefix, logentry.replace('\n', LINE_SEPARATOR))
+        '%s %s%s\n' % (TOKEN, prefix, treat_message(logentry))
     )
 
     # loop through the log events and send to the endpoint
