@@ -1,5 +1,6 @@
 import logging
 import json
+import re
 import gzip
 import socket
 import ssl
@@ -18,7 +19,12 @@ ENDPOINT = '{}.data.logs.insight.rapid7.com'.format(REGION)
 PORT = 20000
 TOKEN = os.environ.get('token')
 PREFIX_LINES = os.environ.get('prefix') in ('true', 'yes')
+INCLUDE = os.environ.get('include')
 LINE_SEPARATOR = u'\u2028'.encode('utf-8')
+
+include_if = None
+if INCLUDE:
+    include_if = re.compile(INCLUDE)
 
 
 def treat_message(message):
@@ -38,18 +44,32 @@ def send_lines(sock, cw_data_dict):
             cw_data_dict['logStream'][-7:]
         )
 
-    send = lambda logentry: sock.sendall(
-        '%s %s%s\n' % (TOKEN, prefix, treat_message(logentry))
-    )
+    def send(logentry):
+        sock.sendall('%s %s%s\n' % (
+            TOKEN,
+            prefix,
+            treat_message(logentry))
+        )
 
     # loop through the log events and send to the endpoint
+    count = 0
     for log_event in cw_data_dict['logEvents']:
         # Note that log_event['timestamp'] is not used
-        try:
-            send(json.dumps(log_event['extractedFields']))
-        except KeyError:
-            send(log_event['message'])
-    logger.info('Sent %s log events', len(cw_data_dict['logEvents']))
+        extractedFields = log_event.get('extractedFields', None)
+        if extractedFields:
+            message = json.dumps(extractedFields)
+        else:
+            message = log_event['message']
+
+        if not include_if or include_if.match(message):
+            send(message)
+            count += 1
+
+    total = len(cw_data_dict['logEvents'])
+    if include_if:
+        logger.info('Sent %d/%d log events', count, total)
+    else:
+        logger.info('Sent %s log events', total)
 
 
 def lambda_handler(event, context):

@@ -40,6 +40,7 @@
    | token     | token uuid | The UUID provided by Logentries UI or API - required |
    | region    | eu         | That of your LE account - currently only `eu` |
    | prefix    | true|false | Prefix lines with cloudwatch log group and stream information - default false |
+   | include   | re         | if provided only lines matching this regex are included to LE |
 
 7. Allocate resources:
    * Set memory to 128 MB
